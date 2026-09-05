@@ -562,7 +562,6 @@
       // 2. Left End Plate (Disc): Thickness 30mm, OD 284mm (r=142), Bore 60mm (r=30)
       // Located at X = -575 to -545 (Center: X = -560)
       const endDiscGeo = createHollowCylinderGeometry(30, 142, 30, 48);
-      endDiscGeo.rotateZ(Math.PI / 2);
       
       const leftPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
       leftPlate.position.set(-560, 0, 0);
@@ -579,7 +578,6 @@
 
       // 4. Steel Drum Shell: Length 1150mm (X: -575 to +575), OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
       const shellGeo = createHollowCylinderGeometry(142, 150, 1150, 64);
-      shellGeo.rotateZ(Math.PI / 2);
       const shellMesh = new THREE.Mesh(shellGeo, steelMaterial);
       shellMesh.position.set(0, 0, 0);
       shellMesh.castShadow = true;
@@ -589,7 +587,6 @@
 
       // 5. Rubber Coating: Thickness 10mm, Length 1150mm, ID 150mm, OD 160mm (Ø320mm)
       const rubberGeo = createHollowCylinderGeometry(150, 160, 1150, 64);
-      rubberGeo.rotateZ(Math.PI / 2);
       const rubberMesh = new THREE.Mesh(rubberGeo, rubberMaterial);
       rubberMesh.position.set(0, 0, 0);
       rubberMesh.castShadow = true;
@@ -617,7 +614,6 @@
 
       // 2. Left End Plate (Disc): Thickness 30mm, Center: X = -560
       const endDiscGeo = createHollowCylinderGeometry(30, 142, 30, 48);
-      endDiscGeo.rotateZ(Math.PI / 2);
       
       const leftPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
       leftPlate.position.set(-560, 0, 0);
@@ -635,7 +631,6 @@
       // 4. Steel Drum Shell: Length 1150mm, OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
       // (No rubber coating on driven drum)
       const shellGeo = createHollowCylinderGeometry(142, 150, 1150, 64);
-      shellGeo.rotateZ(Math.PI / 2);
       const shellMesh = new THREE.Mesh(shellGeo, steelMaterial);
       shellMesh.position.set(0, 0, 0);
       shellMesh.castShadow = true;
@@ -646,7 +641,7 @@
       return group;
     }
 
-    // Helper to generate hollow cylinder (pipe / tube)
+    // Helper to generate hollow cylinder (pipe / tube) aligned along X axis
     function createHollowCylinderGeometry(innerRadius, outerRadius, height, radialSegments) {
       const shape = new THREE.Shape();
       shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
@@ -662,6 +657,7 @@
 
       const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
       geo.center(); // Center around origin
+      geo.rotateY(Math.PI / 2); // Extrusion was along Z, rotate around Y by 90 deg so length is along X axis!
       return geo;
     }
 
@@ -904,7 +900,9 @@
       scene.background = new THREE.Color(0x0a0d13);
 
       camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 10, 25000);
-      camera.position.set(1200, 750, 1700);
+      const isMobile = window.innerWidth < 650;
+      const initDist = isMobile ? 1.45 : 1.0;
+      camera.position.set(1300 * initDist, 750 * initDist, 1600 * initDist);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1153,13 +1151,15 @@
     // Camera Views
     function focusOn(view) {
       isTransitioning = true;
+      const isMobile = window.innerWidth < 650;
+      const scale = isMobile ? 1.45 : 1.0;
 
       if (view === 'iso') {
-        targetCameraPos.set(1300, 750, 1600);
+        targetCameraPos.set(1300 * scale, 750 * scale, 1600 * scale);
         targetLookAt.set(0, 0, 0);
         showToast("Isometric View");
       } else if (view === 'front') {
-        targetCameraPos.set(0, 0, 2400);
+        targetCameraPos.set(0, 0, 2400 * scale);
         targetLookAt.set(0, 0, 0);
         showToast("Front Elevation");
       } else if (view === 'keyway') {
@@ -1168,11 +1168,11 @@
         targetLookAt.set(-890, 20, 0);
         showToast("Keyway 250x15x8mm Zoom");
       } else if (view === 'side') {
-        targetCameraPos.set(2400, 0, 0);
+        targetCameraPos.set(2400 * scale, 0, 0);
         targetLookAt.set(0, 0, 0);
         showToast("End Section View");
       } else if (view === 'top') {
-        targetCameraPos.set(0, 2400, 10);
+        targetCameraPos.set(0, 2400 * scale, 10);
         targetLookAt.set(0, 0, 0);
         showToast("Top Plan View");
       }
