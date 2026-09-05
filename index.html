@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Conveyor Drums - Drive & Driven Drum (Line 3)</title>
+  <meta name="description" content="Interactive 3D CAD Inspection & Simulation for Drive and Driven Conveyor Drums - Line 3. Material: Steel 37, Rubber Coated 10mm.">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      overflow: hidden;
+      background: #0b0e14;
+      color: #f0f6fc;
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      touch-action: none;
+    }
+    
+    /* Header Tag */
+    .part-tag {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(15, 19, 26, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #c9d1d9;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .part-tag .title {
+      font-size: 13px;
+      color: #58a6ff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .part-tag .subtitle {
+      font-size: 9.5px;
+      color: #8b949e;
+      font-weight: 500;
+    }
+
+    /* Toggle dashboard button */
+    .toggle-dashboard-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 20;
+      background: #1f6feb;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+    .toggle-dashboard-btn:hover {
+      background: #388bfd;
+    }
+
+    /* Floating control panel - sleek & compact */
+    .dashboard {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(13, 17, 23, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 12px;
+      border-radius: 10px;
+      width: 220px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      z-index: 25;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    
+    .dashboard.collapsed {
+      transform: translateY(-10px) scale(0.97);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 6px;
+    }
+    .dashboard-header h2 {
+      font-size: 11px;
+      color: #f0f6fc;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .close-btn:hover {
+      background: #30363d;
+      color: #fff;
+    }
+
+    .control-group {
+      margin-bottom: 10px;
+    }
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: block;
+      font-size: 8.5px;
+      margin-bottom: 4px;
+      color: #8b949e;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      background: #30363d;
+      border-radius: 3px;
+      outline: none;
+      accent-color: #1f6feb;
+      cursor: pointer;
+    }
+    
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    .btn-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 3px;
+    }
+    button.ctrl-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 6px 4px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 9px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    button.ctrl-btn:hover {
+      background: #30363d;
+      color: #fff;
+      border-color: #58a6ff;
+    }
+    button.ctrl-btn.active {
+      background: #1f6feb;
+      color: #fff;
+      border-color: #388bfd;
+    }
+
+    /* Bottom Quick Bar */
+    .quick-bar {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 17, 23, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 15;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .quick-bar button {
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      font-size: 10px;
+      padding: 5px 9px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .quick-bar button:hover,
+    .quick-bar button:active {
+      background: #30363d;
+      color: #fff;
+    }
+    .quick-bar button.active {
+      background: #1f6feb;
+      color: #fff;
+    }
+    .quick-bar .divider {
+      width: 1px;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.15);
+      margin: 0 2px;
+    }
+
+    /* Specs Badge & Legend */
+    .specs-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 15px;
+      background: rgba(13, 17, 23, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 9.5px;
+      color: #8b949e;
+      z-index: 10;
+      line-height: 1.4;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+    }
+    .specs-badge span {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: absolute;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(31, 111, 235, 0.9);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 10.5px;
+      font-weight: 600;
+      z-index: 30;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .toast.show {
+      opacity: 1;
+    }
+
+    @media (max-width: 650px) {
+      .dashboard {
+        top: 15px;
+        right: 15px;
+        width: 190px;
+        padding: 10px;
+      }
+      .part-tag {
+        max-width: 160px;
+        padding: 6px 10px;
+      }
+      .part-tag .subtitle {
+        display: none;
+      }
+      .specs-badge {
+        display: none;
+      }
+      .quick-bar {
+        bottom: 12px;
+        padding: 3px 6px;
+        gap: 3px;
+      }
+      .quick-bar button {
+        font-size: 9px;
+        padding: 4px 6px;
+      }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+
+  <!-- Header Info -->
+  <div class="part-tag">
+    <div class="title" id="displayModelTitle">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 8v8M8 12h8"></path>
+      </svg>
+      Drive Drum (Line 3)
+    </div>
+    <div class="subtitle" id="displayModelSubtitle">Rubber Coated 10mm &bull; L: 1800mm &bull; Steel 37</div>
+  </div>
+
+  <!-- Open Panel Button (when collapsed) -->
+  <button id="openDashboardBtn" class="toggle-dashboard-btn" style="display: none;" onclick="toggleDashboard(true)">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="4" y1="6" x2="20" y2="6"></line>
+      <line x1="4" y1="12" x2="20" y2="12"></line>
+      <line x1="4" y1="18" x2="20" y2="18"></line>
+    </svg>
+    Controls
+  </button>
+
+  <!-- Floating Control Panel -->
+  <div id="mainDashboard" class="dashboard">
+    <div class="dashboard-header">
+      <h2>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        CAD Controls
+      </h2>
+      <button class="close-btn" title="Close Panel" onclick="toggleDashboard(false)">&times;</button>
+    </div>
+
+    <!-- Drum Selector -->
+    <div class="control-group">
+      <label>Drum Model</label>
+      <div class="btn-grid-3">
+        <button id="btnModelDrive" class="ctrl-btn active" onclick="switchModel('drive')">Drive</button>
+        <button id="btnModelDriven" class="ctrl-btn" onclick="switchModel('driven')">Driven</button>
+        <button id="btnModelBoth" class="ctrl-btn" onclick="switchModel('both')">Both</button>
+      </div>
+    </div>
+
+    <!-- Exploded View -->
+    <div class="control-group">
+      <label for="explodeRange">Exploded View (<span id="explodeVal">0%</span>)</label>
+      <input type="range" id="explodeRange" min="0" max="1" step="0.01" value="0" oninput="onExplodeInput(this.value)">
+      <div class="btn-grid" style="margin-top: 4px;">
+        <button class="ctrl-btn" onclick="setExplode(0)">Assemble</button>
+        <button class="ctrl-btn" onclick="setExplode(1)">Explode</button>
+      </div>
+    </div>
+
+    <!-- Inspection / Cutaway Mode -->
+    <div class="control-group">
+      <label>Section Cutaway</label>
+      <div class="btn-grid">
+        <button id="btnCutSolid" class="ctrl-btn active" onclick="setCutawayMode('solid')">Solid</button>
+        <button id="btnCutQuarter" class="ctrl-btn" onclick="setCutawayMode('quarter')">Quarter 90°</button>
+        <button id="btnCutHalf" class="ctrl-btn" onclick="setCutawayMode('half')">Half 180°</button>
+        <button id="btnCutXray" class="ctrl-btn" onclick="setCutawayMode('xray')">X-Ray Shell</button>
+      </div>
+    </div>
+
+    <!-- Dimensions & Annotations -->
+    <div class="control-group">
+      <label>CAD Dimensions</label>
+      <div class="btn-grid">
+        <button id="btnToggleDims" class="ctrl-btn active" onclick="toggleDimensions()">Dimensions: ON</button>
+        <button id="btnToggleKey" class="ctrl-btn" onclick="toggleDriveKey()">Drive Key: ON</button>
+      </div>
+    </div>
+
+    <!-- Camera Presets -->
+    <div class="control-group">
+      <label>Camera Presets</label>
+      <div class="btn-grid">
+        <button class="ctrl-btn" onclick="focusOn('iso')">Isometric</button>
+        <button class="ctrl-btn" onclick="focusOn('front')">Front Elevation</button>
+        <button class="ctrl-btn" onclick="focusOn('keyway')">Keyway Zoom</button>
+        <button class="ctrl-btn" onclick="focusOn('side')">End Section</button>
+        <button class="ctrl-btn" onclick="focusOn('top')">Top Plan</button>
+        <button class="ctrl-btn" onclick="resetCamera()">Reset</button>
+      </div>
+    </div>
+
+    <!-- Rotation Animation -->
+    <div class="control-group">
+      <label>Simulation</label>
+      <button id="btnAutoRotate" class="ctrl-btn" style="width: 100%;" onclick="toggleAutoRotate()">Auto-Rotate: OFF</button>
+    </div>
+  </div>
+
+  <!-- Quick Action Bottom Bar -->
+  <div class="quick-bar">
+    <button onclick="focusOn('iso')">Isometric</button>
+    <button onclick="focusOn('front')">Front</button>
+    <button onclick="focusOn('keyway')">Keyway</button>
+    <div class="divider"></div>
+    <button id="quickBtnDrive" class="active" onclick="switchModel('drive')">Drive</button>
+    <button id="quickBtnDriven" onclick="switchModel('driven')">Driven</button>
+    <div class="divider"></div>
+    <button onclick="toggleDashboard()">Controls</button>
+  </div>
+
+  <!-- Specs Card -->
+  <div class="specs-badge" id="specsBadge">
+    <div>Line 3 &bull; <span>Steel 37</span> &bull; Qty: 1</div>
+    <div id="specsDetails">Drive Shaft: Ø60 x 1800mm | Shell: Ø300/320 x 1150mm</div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">View Reset</div>
+
+  <script>
+    // --- Global 3D Engine Variables ---
+    let scene, camera, renderer, controls;
+    let driveDrumGroup, drivenDrumGroup;
+    let driveDimensionsGroup, drivenDimensionsGroup;
+    let driveKeyMesh = null;
+    let currentModel = 'drive'; // 'drive', 'driven', 'both'
+    let cutawayMode = 'solid';  // 'solid', 'quarter', 'half', 'xray'
+    let showDims = true;
+    let isAutoRotating = false;
+    let explodeAmount = 0;
+
+    // Smooth camera view transitions
+    let isTransitioning = false;
+    let targetCameraPos = new THREE.Vector3(1400, 900, 1800);
+    let targetLookAt = new THREE.Vector3(0, 0, 0);
+
+    // Cutting Planes for Cross Sections
+    let clipPlaneY = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+    let clipPlaneZ = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+
+    // Materials
+    let steelMaterial, rubberMaterial, endPlateMaterial, keywaySlotMaterial, keyMaterial, dimLineMaterial;
+
+    function initMaterials() {
+      // Steel 37: Clean industrial semi-gloss metal
+      steelMaterial = new THREE.MeshStandardMaterial({
+        color: 0x9ba5b0,
+        metalness: 0.85,
+        roughness: 0.28,
+        clippingPlanes: [],
+        clipShadows: true
+      });
+
+      // Rubber Coating 10mm: Matte charcoal vulcanized rubber
+      rubberMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1a1d22,
+        metalness: 0.05,
+        roughness: 0.88,
+        clippingPlanes: [],
+        clipShadows: true
+      });
+
+      // End Plates: Machined structural steel
+      endPlateMaterial = new THREE.MeshStandardMaterial({
+        color: 0x7c8793,
+        metalness: 0.8,
+        roughness: 0.35,
+        clippingPlanes: [],
+        clipShadows: true
+      });
+
+      // Keyway slot & Key bar
+      keywaySlotMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5a636e,
+        metalness: 0.9,
+        roughness: 0.2
+      });
+
+      keyMaterial = new THREE.MeshStandardMaterial({
+        color: 0xd4a359, // Machined brass/hardened alloy key
+        metalness: 0.85,
+        roughness: 0.25
+      });
+
+      dimLineMaterial = new THREE.LineBasicMaterial({
+        color: 0x00ffff,
+        linewidth: 1.5,
+        transparent: true,
+        opacity: 0.85
+      });
+    }
+
+    // --- Geometry Builders ---
+    // Shaft with X axis orientation
+    // Shell: Length 1150, centered at X = 0 (X: -575 to +575)
+    // Drive Drum: Left extension = 450 (X: -1025 to -575), Right extension = 200 (X: +575 to +775)
+    // Driven Drum: Left extension = 200 (X: -775 to -575), Right extension = 200 (X: +575 to +775)
+
+    function createDriveDrum() {
+      const group = new THREE.Group();
+      group.name = "driveDrumGroup";
+
+      // 1. Shaft: Ø60mm (r=30mm), Length: 1800mm
+      // Shaft extends from X = -1025 to X = +775
+      const shaftGeo = new THREE.CylinderGeometry(30, 30, 1800, 48);
+      shaftGeo.rotateZ(Math.PI / 2);
+      const shaftMesh = new THREE.Mesh(shaftGeo, steelMaterial);
+      shaftMesh.position.set(-125, 0, 0); // Center: (-1025 + 775) / 2 = -125
+      shaftMesh.castShadow = true;
+      shaftMesh.receiveShadow = true;
+      shaftMesh.name = "drive_shaft";
+      group.add(shaftMesh);
+
+      // Keyway on drive shaft (Left: -1025 to -775, Length 250, Width 15, Depth 8)
+      // Placed on top of shaft (Y = 30)
+      const keywayGeo = new THREE.BoxGeometry(250, 8, 15);
+      const keywayMesh = new THREE.Mesh(keywayGeo, keywaySlotMaterial);
+      // Located starting from X = -1015 to -765
+      keywayMesh.position.set(-890, 26, 0);
+      group.add(keywayMesh);
+
+      // Key bar (Fitting inside keyway)
+      const keyGeo = new THREE.BoxGeometry(246, 12, 14.6);
+      driveKeyMesh = new THREE.Mesh(keyGeo, keyMaterial);
+      driveKeyMesh.position.set(-890, 30, 0);
+      driveKeyMesh.castShadow = true;
+      group.add(driveKeyMesh);
+
+      // 2. Left End Plate (Disc): Thickness 30mm, OD 284mm (r=142), Bore 60mm (r=30)
+      // Located at X = -575 to -545 (Center: X = -560)
+      const endDiscGeo = createHollowCylinderGeometry(30, 142, 30, 48);
+      endDiscGeo.rotateZ(Math.PI / 2);
+      
+      const leftPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
+      leftPlate.position.set(-560, 0, 0);
+      leftPlate.castShadow = true;
+      leftPlate.name = "left_end_plate";
+      group.add(leftPlate);
+
+      // 3. Right End Plate (Disc): Thickness 30mm, Located at X = +545 to +575 (Center: X = +560)
+      const rightPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
+      rightPlate.position.set(560, 0, 0);
+      rightPlate.castShadow = true;
+      rightPlate.name = "right_end_plate";
+      group.add(rightPlate);
+
+      // 4. Steel Drum Shell: Length 1150mm (X: -575 to +575), OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
+      const shellGeo = createHollowCylinderGeometry(142, 150, 1150, 64);
+      shellGeo.rotateZ(Math.PI / 2);
+      const shellMesh = new THREE.Mesh(shellGeo, steelMaterial);
+      shellMesh.position.set(0, 0, 0);
+      shellMesh.castShadow = true;
+      shellMesh.receiveShadow = true;
+      shellMesh.name = "steel_shell";
+      group.add(shellMesh);
+
+      // 5. Rubber Coating: Thickness 10mm, Length 1150mm, ID 150mm, OD 160mm (Ø320mm)
+      const rubberGeo = createHollowCylinderGeometry(150, 160, 1150, 64);
+      rubberGeo.rotateZ(Math.PI / 2);
+      const rubberMesh = new THREE.Mesh(rubberGeo, rubberMaterial);
+      rubberMesh.position.set(0, 0, 0);
+      rubberMesh.castShadow = true;
+      rubberMesh.receiveShadow = true;
+      rubberMesh.name = "rubber_coating";
+      group.add(rubberMesh);
+
+      return group;
+    }
+
+    function createDrivenDrum() {
+      const group = new THREE.Group();
+      group.name = "drivenDrumGroup";
+
+      // 1. Shaft: Ø60mm (r=30mm), Length: 1550mm
+      // Shaft extends from X = -775 to X = +775 (Symmetric, Center at X = 0)
+      const shaftGeo = new THREE.CylinderGeometry(30, 30, 1550, 48);
+      shaftGeo.rotateZ(Math.PI / 2);
+      const shaftMesh = new THREE.Mesh(shaftGeo, steelMaterial);
+      shaftMesh.position.set(0, 0, 0);
+      shaftMesh.castShadow = true;
+      shaftMesh.receiveShadow = true;
+      shaftMesh.name = "driven_shaft";
+      group.add(shaftMesh);
+
+      // 2. Left End Plate (Disc): Thickness 30mm, Center: X = -560
+      const endDiscGeo = createHollowCylinderGeometry(30, 142, 30, 48);
+      endDiscGeo.rotateZ(Math.PI / 2);
+      
+      const leftPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
+      leftPlate.position.set(-560, 0, 0);
+      leftPlate.castShadow = true;
+      leftPlate.name = "left_end_plate";
+      group.add(leftPlate);
+
+      // 3. Right End Plate (Disc): Thickness 30mm, Center: X = +560
+      const rightPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
+      rightPlate.position.set(560, 0, 0);
+      rightPlate.castShadow = true;
+      rightPlate.name = "right_end_plate";
+      group.add(rightPlate);
+
+      // 4. Steel Drum Shell: Length 1150mm, OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
+      // (No rubber coating on driven drum)
+      const shellGeo = createHollowCylinderGeometry(142, 150, 1150, 64);
+      shellGeo.rotateZ(Math.PI / 2);
+      const shellMesh = new THREE.Mesh(shellGeo, steelMaterial);
+      shellMesh.position.set(0, 0, 0);
+      shellMesh.castShadow = true;
+      shellMesh.receiveShadow = true;
+      shellMesh.name = "steel_shell";
+      group.add(shellMesh);
+
+      return group;
+    }
+
+    // Helper to generate hollow cylinder (pipe / tube)
+    function createHollowCylinderGeometry(innerRadius, outerRadius, height, radialSegments) {
+      const shape = new THREE.Shape();
+      shape.absarc(0, 0, outerRadius, 0, Math.PI * 2, false);
+      const holePath = new THREE.Path();
+      holePath.absarc(0, 0, innerRadius, 0, Math.PI * 2, true);
+      shape.holes.push(holePath);
+
+      const extrudeSettings = {
+        depth: height,
+        bevelEnabled: false,
+        curveSegments: radialSegments
+      };
+
+      const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geo.center(); // Center around origin
+      return geo;
+    }
+
+    // --- Dimension Annotations Builder ---
+    function createDimensionLine(p1, p2, text, offsetDir = new THREE.Vector3(0, 1, 0), textOffset = 25) {
+      const dimGroup = new THREE.Group();
+
+      // Main line
+      const points = [p1, p2];
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(lineGeo, dimLineMaterial);
+      dimGroup.add(line);
+
+      // End ticks
+      const tickLength = 15;
+      const t1Start = p1.clone().add(offsetDir.clone().multiplyScalar(tickLength));
+      const t1End = p1.clone().add(offsetDir.clone().multiplyScalar(-tickLength));
+      const t2Start = p2.clone().add(offsetDir.clone().multiplyScalar(tickLength));
+      const t2End = p2.clone().add(offsetDir.clone().multiplyScalar(-tickLength));
+
+      const tickGeo = new THREE.BufferGeometry().setFromPoints([t1Start, t1End, t2Start, t2End]);
+      const ticks = new THREE.LineSegments(tickGeo, dimLineMaterial);
+      dimGroup.add(ticks);
+
+      // Text sprite
+      const midPoint = p1.clone().add(p2).multiplyScalar(0.5).add(offsetDir.clone().multiplyScalar(textOffset));
+      const sprite = createTextSprite(text);
+      sprite.position.copy(midPoint);
+      dimGroup.add(sprite);
+
+      return dimGroup;
+    }
+
+    function createTextSprite(text, fontSize = 32, textColor = "#00ffff", bgColor = "rgba(10, 14, 20, 0.85)") {
+      const canvas = document.createElement('canvas');
+      canvas.width = 380;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+
+      // Rounded background box
+      ctx.fillStyle = bgColor;
+      roundRect(ctx, 10, 15, 360, 70, 12, true, true);
+
+      // Border
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#00ffff';
+      roundRect(ctx, 10, 15, 360, 70, 12, false, true);
+
+      // Text
+      ctx.fillStyle = textColor;
+      ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 190, 50);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      sprite.scale.set(130, 36, 1);
+      return sprite;
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function buildDimensions() {
+      // 1. Drive Drum Dimensions
+      driveDimensionsGroup = new THREE.Group();
+
+      // Shaft Total Length 1800.0
+      driveDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-1025, 230, 0),
+        new THREE.Vector3(775, 230, 0),
+        "1800.0 mm (Shaft)",
+        new THREE.Vector3(0, 1, 0),
+        25
+      ));
+
+      // Drum Shell Length 1150
+      driveDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-575, 190, 0),
+        new THREE.Vector3(575, 190, 0),
+        "1150 mm (Drum)",
+        new THREE.Vector3(0, 1, 0),
+        25
+      ));
+
+      // Left Drive Extension 450.0
+      driveDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-1025, 120, 0),
+        new THREE.Vector3(-575, 120, 0),
+        "450.0 mm",
+        new THREE.Vector3(0, 1, 0),
+        22
+      ));
+
+      // Right Extension 200.0
+      driveDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(575, 120, 0),
+        new THREE.Vector3(775, 120, 0),
+        "200.0 mm",
+        new THREE.Vector3(0, 1, 0),
+        22
+      ));
+
+      // Keyway Length 250.0
+      driveDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-1015, 60, 0),
+        new THREE.Vector3(-765, 60, 0),
+        "Keyway 250.0 mm",
+        new THREE.Vector3(0, 1, 0),
+        22
+      ));
+
+      // Keyway Depth & Width Tag
+      const keywayTag = createTextSprite("Keyway: 15.0 x Depth 8 mm", 26, "#ffcc00");
+      keywayTag.position.set(-890, -60, 0);
+      driveDimensionsGroup.add(keywayTag);
+
+      // Shaft Diameter Ø60.0
+      const shaftDia = createDimensionLine(
+        new THREE.Vector3(-1025, -30, 0),
+        new THREE.Vector3(-1025, 30, 0),
+        "Ø60.0",
+        new THREE.Vector3(-1, 0, 0),
+        35
+      );
+      driveDimensionsGroup.add(shaftDia);
+
+      // Shell & Rubber Diameters: Ø300.0 and Ø320.0
+      const rubberDia = createDimensionLine(
+        new THREE.Vector3(775, -160, 0),
+        new THREE.Vector3(775, 160, 0),
+        "Ø320.0 (Coated)",
+        new THREE.Vector3(1, 0, 0),
+        45
+      );
+      driveDimensionsGroup.add(rubberDia);
+
+      const shellDia = createDimensionLine(
+        new THREE.Vector3(650, -150, 0),
+        new THREE.Vector3(650, 150, 0),
+        "Ø300.0 (Steel)",
+        new THREE.Vector3(1, 0, 0),
+        35
+      );
+      driveDimensionsGroup.add(shellDia);
+
+      // Internal Discs 30.0 & Shell 8.0 callout
+      const diskTag = createTextSprite("End Plates: 30.0 mm | Shell Wall: 8.0 mm", 25, "#58a6ff");
+      diskTag.position.set(0, -210, 0);
+      driveDimensionsGroup.add(diskTag);
+
+      // Rubber Coated 10mm Callout
+      const rubberTag = createTextSprite("Rubber Coated 10 mm", 26, "#3fb950");
+      rubberTag.position.set(0, 240, 0);
+      driveDimensionsGroup.add(rubberTag);
+
+
+      // 2. Driven Drum Dimensions
+      drivenDimensionsGroup = new THREE.Group();
+
+      // Shaft Total Length 1550.0
+      drivenDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-775, 230, 0),
+        new THREE.Vector3(775, 230, 0),
+        "1550.0 mm (Shaft)",
+        new THREE.Vector3(0, 1, 0),
+        25
+      ));
+
+      // Drum Shell Length 1150
+      drivenDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-575, 190, 0),
+        new THREE.Vector3(575, 190, 0),
+        "1150 mm (Drum)",
+        new THREE.Vector3(0, 1, 0),
+        25
+      ));
+
+      // Left Extension 200.0
+      drivenDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-775, 120, 0),
+        new THREE.Vector3(-575, 120, 0),
+        "200.0 mm",
+        new THREE.Vector3(0, 1, 0),
+        22
+      ));
+
+      // Right Extension 200.0
+      drivenDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(575, 120, 0),
+        new THREE.Vector3(775, 120, 0),
+        "200.0 mm",
+        new THREE.Vector3(0, 1, 0),
+        22
+      ));
+
+      // Shaft Diameter Ø60.0
+      drivenDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(-775, -30, 0),
+        new THREE.Vector3(-775, 30, 0),
+        "Ø60.0",
+        new THREE.Vector3(-1, 0, 0),
+        35
+      ));
+
+      // Shell Diameter Ø300.0
+      drivenDimensionsGroup.add(createDimensionLine(
+        new THREE.Vector3(775, -150, 0),
+        new THREE.Vector3(775, 150, 0),
+        "Ø300.0",
+        new THREE.Vector3(1, 0, 0),
+        40
+      ));
+
+      const drivenTag = createTextSprite("Driven Drum (No Rubber) &bull; Steel 37", 26, "#58a6ff");
+      drivenTag.position.set(0, -210, 0);
+      drivenDimensionsGroup.add(drivenTag);
+    }
+
+    // --- Scene Setup ---
+    function init() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0d13);
+
+      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 10, 25000);
+      camera.position.set(1200, 750, 1700);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.localClippingEnabled = true;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.maxDistance = 6000;
+      controls.minDistance = 80;
+      controls.target.set(0, 0, 0);
+
+      initMaterials();
+
+      // Studio Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+      scene.add(ambientLight);
+
+      const mainSpot = new THREE.DirectionalLight(0xffffff, 1.2);
+      mainSpot.position.set(1000, 2000, 1500);
+      mainSpot.castShadow = true;
+      mainSpot.shadow.mapSize.width = 2048;
+      mainSpot.shadow.mapSize.height = 2048;
+      mainSpot.shadow.camera.near = 100;
+      mainSpot.shadow.camera.far = 6000;
+      mainSpot.shadow.camera.left = -1500;
+      mainSpot.shadow.camera.right = 1500;
+      mainSpot.shadow.camera.top = 1500;
+      mainSpot.shadow.camera.bottom = -1500;
+      scene.add(mainSpot);
+
+      const fillLight = new THREE.DirectionalLight(0x7fb2ff, 0.6);
+      fillLight.position.set(-1500, -500, -1000);
+      scene.add(fillLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffd29d, 0.7);
+      rimLight.position.set(500, 1000, -1500);
+      scene.add(rimLight);
+
+      // Engineering Grid Floor
+      const grid = new THREE.GridHelper(3000, 60, 0x1f2937, 0x111827);
+      grid.position.y = -260;
+      scene.add(grid);
+
+      // Build Models
+      driveDrumGroup = createDriveDrum();
+      drivenDrumGroup = createDrivenDrum();
+      buildDimensions();
+
+      scene.add(driveDrumGroup);
+      scene.add(driveDimensionsGroup);
+
+      // Resize Listener
+      window.addEventListener('resize', onWindowResize, false);
+
+      // Start loop
+      animate();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // --- Interaction & Mode Switchers ---
+    function switchModel(model) {
+      currentModel = model;
+      setExplode(0);
+
+      // Update buttons
+      document.getElementById('btnModelDrive').classList.toggle('active', model === 'drive');
+      document.getElementById('btnModelDriven').classList.toggle('active', model === 'driven');
+      document.getElementById('btnModelBoth').classList.toggle('active', model === 'both');
+
+      document.getElementById('quickBtnDrive').classList.toggle('active', model === 'drive');
+      document.getElementById('quickBtnDriven').classList.toggle('active', model === 'driven');
+
+      // Clear current groups
+      scene.remove(driveDrumGroup);
+      scene.remove(drivenDrumGroup);
+      scene.remove(driveDimensionsGroup);
+      scene.remove(drivenDimensionsGroup);
+
+      const titleEl = document.getElementById('displayModelTitle');
+      const subEl = document.getElementById('displayModelSubtitle');
+      const specsDetails = document.getElementById('specsDetails');
+
+      if (model === 'drive') {
+        driveDrumGroup.position.set(0, 0, 0);
+        scene.add(driveDrumGroup);
+        if (showDims) scene.add(driveDimensionsGroup);
+        titleEl.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path>
+          </svg>
+          Drive Drum (Line 3)
+        `;
+        subEl.innerText = "Rubber Coated 10mm • L: 1800mm • Steel 37";
+        specsDetails.innerText = "Drive Shaft: Ø60 x 1800mm | Shell: Ø300/320 x 1150mm | Key: 250x15x8";
+        showToast("Switched to Drive Drum");
+      } else if (model === 'driven') {
+        drivenDrumGroup.position.set(0, 0, 0);
+        scene.add(drivenDrumGroup);
+        if (showDims) scene.add(drivenDimensionsGroup);
+        titleEl.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle><path d="M12 16V8l-4 4M12 8l4 4"></path>
+          </svg>
+          Driven Drum (Line 3)
+        `;
+        subEl.innerText = "Bare Steel 37 • L: 1550mm • Symmetric Shaft";
+        specsDetails.innerText = "Driven Shaft: Ø60 x 1550mm | Shell: Ø300 x 1150mm | Bare Steel";
+        showToast("Switched to Driven Drum");
+      } else if (model === 'both') {
+        driveDrumGroup.position.set(0, 0, -320);
+        drivenDrumGroup.position.set(0, 0, 320);
+        scene.add(driveDrumGroup);
+        scene.add(drivenDrumGroup);
+        titleEl.innerText = "Drive & Driven Drums (Comparison)";
+        subEl.innerText = "Side-by-Side Comparison • Line 3";
+        specsDetails.innerText = "Drive (Back): Ø320mm / 1800mm | Driven (Front): Ø300mm / 1550mm";
+        showToast("Comparison Mode Active");
+      }
+    }
+
+    // Exploded View Handler
+    function onExplodeInput(val) {
+      explodeAmount = parseFloat(val);
+      document.getElementById('explodeVal').innerText = Math.round(explodeAmount * 100) + '%';
+      applyExplode(explodeAmount);
+    }
+
+    function setExplode(val) {
+      explodeAmount = val;
+      document.getElementById('explodeRange').value = val;
+      document.getElementById('explodeVal').innerText = Math.round(val * 100) + '%';
+      applyExplode(val);
+    }
+
+    function applyExplode(factor) {
+      const dist = factor * 350; // max displacement 350mm
+
+      // Move left & right end plates away from center
+      const leftPlateDrive = driveDrumGroup.getObjectByName("left_end_plate");
+      const rightPlateDrive = driveDrumGroup.getObjectByName("right_end_plate");
+      const rubberDrive = driveDrumGroup.getObjectByName("rubber_coating");
+
+      if (leftPlateDrive) leftPlateDrive.position.x = -560 - dist * 0.7;
+      if (rightPlateDrive) rightPlateDrive.position.x = 560 + dist * 0.7;
+
+      // Expand rubber coating slightly in radial direction or pull away
+      if (rubberDrive) {
+        rubberDrive.scale.set(1, 1 + factor * 0.35, 1 + factor * 0.35);
+      }
+
+      const leftPlateDriven = drivenDrumGroup.getObjectByName("left_end_plate");
+      const rightPlateDriven = drivenDrumGroup.getObjectByName("right_end_plate");
+
+      if (leftPlateDriven) leftPlateDriven.position.x = -560 - dist * 0.7;
+      if (rightPlateDriven) rightPlateDriven.position.x = 560 + dist * 0.7;
+
+      // Also adjust dimensions visibility during explode
+      if (factor > 0.05 && showDims) {
+        driveDimensionsGroup.visible = false;
+        drivenDimensionsGroup.visible = false;
+      } else if (showDims) {
+        driveDimensionsGroup.visible = true;
+        drivenDimensionsGroup.visible = true;
+      }
+    }
+
+    // Cutaway / Section Inspection
+    function setCutawayMode(mode) {
+      cutawayMode = mode;
+
+      document.getElementById('btnCutSolid').classList.toggle('active', mode === 'solid');
+      document.getElementById('btnCutQuarter').classList.toggle('active', mode === 'quarter');
+      document.getElementById('btnCutHalf').classList.toggle('active', mode === 'half');
+      document.getElementById('btnCutXray').classList.toggle('active', mode === 'xray');
+
+      // Reset material properties
+      steelMaterial.transparent = false;
+      steelMaterial.opacity = 1.0;
+      rubberMaterial.transparent = false;
+      rubberMaterial.opacity = 1.0;
+
+      if (mode === 'solid') {
+        steelMaterial.clippingPlanes = [];
+        rubberMaterial.clippingPlanes = [];
+        endPlateMaterial.clippingPlanes = [];
+        showToast("Cutaway: Solid View");
+      } else if (mode === 'quarter') {
+        // 90 degree cutaway (Clip Y > 0 and Z > 0)
+        steelMaterial.clippingPlanes = [clipPlaneY, clipPlaneZ];
+        rubberMaterial.clippingPlanes = [clipPlaneY, clipPlaneZ];
+        endPlateMaterial.clippingPlanes = [clipPlaneY, clipPlaneZ];
+        showToast("Cutaway: 90° Quarter Section");
+      } else if (mode === 'half') {
+        // 180 degree cutaway (Clip Y > 0)
+        steelMaterial.clippingPlanes = [clipPlaneY];
+        rubberMaterial.clippingPlanes = [clipPlaneY];
+        endPlateMaterial.clippingPlanes = [clipPlaneY];
+        showToast("Cutaway: 180° Half Section");
+      } else if (mode === 'xray') {
+        steelMaterial.clippingPlanes = [];
+        rubberMaterial.clippingPlanes = [];
+        endPlateMaterial.clippingPlanes = [];
+        steelMaterial.transparent = true;
+        steelMaterial.opacity = 0.35;
+        rubberMaterial.transparent = true;
+        rubberMaterial.opacity = 0.25;
+        showToast("Cutaway: X-Ray Transparent Shell");
+      }
+
+      steelMaterial.needsUpdate = true;
+      rubberMaterial.needsUpdate = true;
+      endPlateMaterial.needsUpdate = true;
+    }
+
+    // Toggle Dimensions
+    function toggleDimensions() {
+      showDims = !showDims;
+      driveDimensionsGroup.visible = showDims;
+      drivenDimensionsGroup.visible = showDims;
+      const btn = document.getElementById('btnToggleDims');
+      btn.innerText = `Dimensions: ${showDims ? 'ON' : 'OFF'}`;
+      btn.classList.toggle('active', showDims);
+      showToast(showDims ? "CAD Dimensions Enabled" : "CAD Dimensions Hidden");
+    }
+
+    // Toggle Drive Key
+    function toggleDriveKey() {
+      if (!driveKeyMesh) return;
+      driveKeyMesh.visible = !driveKeyMesh.visible;
+      const btn = document.getElementById('btnToggleKey');
+      btn.innerText = `Drive Key: ${driveKeyMesh.visible ? 'ON' : 'OFF'}`;
+      btn.classList.toggle('active', driveKeyMesh.visible);
+      showToast(driveKeyMesh.visible ? "Drive Key Mounted" : "Drive Key Removed");
+    }
+
+    // Camera Views
+    function focusOn(view) {
+      isTransitioning = true;
+
+      if (view === 'iso') {
+        targetCameraPos.set(1300, 750, 1600);
+        targetLookAt.set(0, 0, 0);
+        showToast("Isometric View");
+      } else if (view === 'front') {
+        targetCameraPos.set(0, 0, 2400);
+        targetLookAt.set(0, 0, 0);
+        showToast("Front Elevation");
+      } else if (view === 'keyway') {
+        // Close-up on drive shaft keyway (X = -890)
+        targetCameraPos.set(-820, 220, 360);
+        targetLookAt.set(-890, 20, 0);
+        showToast("Keyway 250x15x8mm Zoom");
+      } else if (view === 'side') {
+        targetCameraPos.set(2400, 0, 0);
+        targetLookAt.set(0, 0, 0);
+        showToast("End Section View");
+      } else if (view === 'top') {
+        targetCameraPos.set(0, 2400, 10);
+        targetLookAt.set(0, 0, 0);
+        showToast("Top Plan View");
+      }
+    }
+
+    function resetCamera() {
+      focusOn('iso');
+    }
+
+    function toggleAutoRotate() {
+      isAutoRotating = !isAutoRotating;
+      const btn = document.getElementById('btnAutoRotate');
+      btn.innerText = `Auto-Rotate: ${isAutoRotating ? 'ON' : 'OFF'}`;
+      btn.classList.toggle('active', isAutoRotating);
+    }
+
+    function toggleDashboard(forceOpen) {
+      const panel = document.getElementById('mainDashboard');
+      const openBtn = document.getElementById('openDashboardBtn');
+      const isCollapsed = panel.classList.contains('collapsed');
+
+      if (forceOpen === true || isCollapsed) {
+        panel.classList.remove('collapsed');
+        openBtn.style.display = 'none';
+      } else {
+        panel.classList.add('collapsed');
+        openBtn.style.display = 'flex';
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // --- Main Animation Loop ---
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Smooth Camera Transition
+      if (isTransitioning) {
+        camera.position.lerp(targetCameraPos, 0.08);
+        controls.target.lerp(targetLookAt, 0.08);
+
+        if (camera.position.distanceTo(targetCameraPos) < 5 && controls.target.distanceTo(targetLookAt) < 2) {
+          isTransitioning = false;
+        }
+      }
+
+      // Auto Rotation
+      if (isAutoRotating) {
+        if (driveDrumGroup) driveDrumGroup.rotation.x += 0.01;
+        if (drivenDrumGroup) drivenDrumGroup.rotation.x += 0.01;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Run on load
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
