@@ -550,42 +550,49 @@
       const keywayMesh = new THREE.Mesh(keywayGeo, keywaySlotMaterial);
       // Located starting from X = -1015 to -765
       keywayMesh.position.set(-890, 26, 0);
+      keywayMesh.name = "drive_keyway_slot";
       group.add(keywayMesh);
 
-      // Key bar (Fitting inside keyway)
+      // Key bar (Fitting inside keyway - الخابور الميكانيكي)
       const keyGeo = new THREE.BoxGeometry(246, 12, 14.6);
       driveKeyMesh = new THREE.Mesh(keyGeo, keyMaterial);
-      driveKeyMesh.position.set(-890, 30, 0);
+      driveKeyMesh.position.set(-890, 28, 0);
       driveKeyMesh.castShadow = true;
+      driveKeyMesh.name = "drive_key";
       group.add(driveKeyMesh);
 
-      // 2. Left End Plate (Disc): Thickness 30mm, OD 284mm (r=142), Bore 60mm (r=30)
-      // Located at X = -575 to -545 (Center: X = -560)
+      // 2. Solid Steel Drum Body (جسم الطنبورة الصلب الموحد: أسطوانة + أقراص جانبية ملحومة ثابتة)
+      const drumBodyGroup = new THREE.Group();
+      drumBodyGroup.name = "drum_body";
+
+      // Left End Plate (Disc): Thickness 30mm, OD 284mm (r=142), Bore 60mm (r=30)
+      // Welded inside drum shell from X = -575 to -545 (Center: X = -560)
       const endDiscGeo = createHollowCylinderGeometry(30, 142, 30, 48);
-      
       const leftPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
       leftPlate.position.set(-560, 0, 0);
       leftPlate.castShadow = true;
       leftPlate.name = "left_end_plate";
-      group.add(leftPlate);
+      drumBodyGroup.add(leftPlate);
 
-      // 3. Right End Plate (Disc): Thickness 30mm, Located at X = +545 to +575 (Center: X = +560)
+      // Right End Plate (Disc): Thickness 30mm, Located at X = +545 to +575 (Center: X = +560)
       const rightPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
       rightPlate.position.set(560, 0, 0);
       rightPlate.castShadow = true;
       rightPlate.name = "right_end_plate";
-      group.add(rightPlate);
+      drumBodyGroup.add(rightPlate);
 
-      // 4. Steel Drum Shell: Length 1150mm (X: -575 to +575), OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
+      // Steel Drum Shell: Length 1150mm (X: -575 to +575), OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
       const shellGeo = createHollowCylinderGeometry(142, 150, 1150, 64);
       const shellMesh = new THREE.Mesh(shellGeo, steelMaterial);
       shellMesh.position.set(0, 0, 0);
       shellMesh.castShadow = true;
       shellMesh.receiveShadow = true;
       shellMesh.name = "steel_shell";
-      group.add(shellMesh);
+      drumBodyGroup.add(shellMesh);
 
-      // 5. Rubber Coating: Thickness 10mm, Length 1150mm, ID 150mm, OD 160mm (Ø320mm)
+      group.add(drumBodyGroup);
+
+      // 3. Rubber Coating (الكسوة المطاطية 10 مم): Thickness 10mm, Length 1150mm, ID 150mm, OD 160mm (Ø320mm)
       const rubberGeo = createHollowCylinderGeometry(150, 160, 1150, 64);
       const rubberMesh = new THREE.Mesh(rubberGeo, rubberMaterial);
       rubberMesh.position.set(0, 0, 0);
@@ -612,31 +619,35 @@
       shaftMesh.name = "driven_shaft";
       group.add(shaftMesh);
 
-      // 2. Left End Plate (Disc): Thickness 30mm, Center: X = -560
+      // 2. Solid Steel Drum Body (جسم الطنبورة الصلب الموحد)
+      const drumBodyGroup = new THREE.Group();
+      drumBodyGroup.name = "drum_body";
+
+      // Left End Plate (Disc): Thickness 30mm, Center: X = -560
       const endDiscGeo = createHollowCylinderGeometry(30, 142, 30, 48);
-      
       const leftPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
       leftPlate.position.set(-560, 0, 0);
       leftPlate.castShadow = true;
       leftPlate.name = "left_end_plate";
-      group.add(leftPlate);
+      drumBodyGroup.add(leftPlate);
 
-      // 3. Right End Plate (Disc): Thickness 30mm, Center: X = +560
+      // Right End Plate (Disc): Thickness 30mm, Center: X = +560
       const rightPlate = new THREE.Mesh(endDiscGeo, endPlateMaterial);
       rightPlate.position.set(560, 0, 0);
       rightPlate.castShadow = true;
       rightPlate.name = "right_end_plate";
-      group.add(rightPlate);
+      drumBodyGroup.add(rightPlate);
 
-      // 4. Steel Drum Shell: Length 1150mm, OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
-      // (No rubber coating on driven drum)
+      // Steel Drum Shell: Length 1150mm, OD 300mm (r=150), ID 284mm (r=142), Wall 8mm
       const shellGeo = createHollowCylinderGeometry(142, 150, 1150, 64);
       const shellMesh = new THREE.Mesh(shellGeo, steelMaterial);
       shellMesh.position.set(0, 0, 0);
       shellMesh.castShadow = true;
       shellMesh.receiveShadow = true;
       shellMesh.name = "steel_shell";
-      group.add(shellMesh);
+      drumBodyGroup.add(shellMesh);
+
+      group.add(drumBodyGroup);
 
       return group;
     }
@@ -1048,28 +1059,33 @@
     }
 
     function applyExplode(factor) {
-      const dist = factor * 350; // max displacement 350mm
-
-      // Move left & right end plates away from center
-      const leftPlateDrive = driveDrumGroup.getObjectByName("left_end_plate");
-      const rightPlateDrive = driveDrumGroup.getObjectByName("right_end_plate");
-      const rubberDrive = driveDrumGroup.getObjectByName("rubber_coating");
-
-      if (leftPlateDrive) leftPlateDrive.position.x = -560 - dist * 0.7;
-      if (rightPlateDrive) rightPlateDrive.position.x = 560 + dist * 0.7;
-
-      // Expand rubber coating slightly in radial direction or pull away
-      if (rubberDrive) {
-        rubberDrive.scale.set(1, 1 + factor * 0.35, 1 + factor * 0.35);
+      // 1. الخابور الميكانيكي (Drive Key): يتفك ويرتفع عمودياً للأعلى خارج المجرى
+      if (driveKeyMesh) {
+        driveKeyMesh.position.y = 28 + factor * 140; // Lifts 140mm straight up out of keyway
       }
 
-      const leftPlateDriven = drivenDrumGroup.getObjectByName("left_end_plate");
-      const rightPlateDriven = drivenDrumGroup.getObjectByName("right_end_plate");
+      // 2. تجميعة طنبورة الإدارة (Drive Drum):
+      // أ) الكسوة المطاطية (Rubber Coating): تنفصل وتتحرك للأمام لكشف أسطوانة الصلب
+      const rubberDrive = driveDrumGroup.getObjectByName("rubber_coating");
+      if (rubberDrive) {
+        rubberDrive.position.z = factor * 320;
+        rubberDrive.scale.set(1, 1 + factor * 0.06, 1 + factor * 0.06);
+      }
 
-      if (leftPlateDriven) leftPlateDriven.position.x = -560 - dist * 0.7;
-      if (rightPlateDriven) rightPlateDriven.position.x = 560 + dist * 0.7;
+      // ب) جسم الطنبورة الصلب الموحد (Drum Body: أسطوانة + أقراص ملحومة ثابتة بدون فلانشات منفصلة)
+      // يتحرك محورياً على الأكس المصمت ليكشف مرور الأكس داخل الأقراص
+      const drumBodyDrive = driveDrumGroup.getObjectByName("drum_body");
+      if (drumBodyDrive) {
+        drumBodyDrive.position.x = factor * 260;
+      }
 
-      // Also adjust dimensions visibility during explode
+      // 3. تجميعة طنبورة الانقياد (Driven Drum):
+      const drumBodyDriven = drivenDrumGroup.getObjectByName("drum_body");
+      if (drumBodyDriven) {
+        drumBodyDriven.position.x = factor * 260;
+      }
+
+      // 4. ضبط خطوط الأبعاد أثناء التفكيك لمنع التداخل
       if (factor > 0.05 && showDims) {
         driveDimensionsGroup.visible = false;
         drivenDimensionsGroup.visible = false;
